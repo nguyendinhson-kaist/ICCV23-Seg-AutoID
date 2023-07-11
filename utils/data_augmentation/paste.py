@@ -147,3 +147,22 @@ def paste_object(output_img_name, ball_number, human_number):
     
     #Write the new image
     cv2.imwrite(f'{data_dir}/{aug_image_dir}/{os.path.basename(output_img_name)}', output_img)
+
+
+def paste_on_images(augmented_path, number_of_images):
+    kont = 1
+    brk = 0
+    for i in range(18):
+        path = augmented_path + '/' + str(i) + '_aug/*.png'
+        image_files = glob.glob(path)
+        for image_file in image_files:
+            #Decide how many balls and humans to be pasted for each image
+            ball_number = 2
+            human_number = 4
+            paste_object(image_file, ball_number, human_number)
+            if kont == number_of_images:
+                brk = 1
+                break
+            kont = kont + 1
+        if brk == 1:
+            break
