@@ -1,3 +1,30 @@
+def convert_text_to_png(annotation, output_path, h, w):
+                        
+    # Create a blank image
+    image = numpy.zeros((h, w, 3), dtype=numpy.uint8)
+    
+    #Read the file
+    with open(annotation, 'r') as f:
+        content = f.read()
+    # Split the annotation into different paragraphs
+    paragraphs = content.split('\n\n')
+    for paragraph in paragraphs:
+        paragraph.strip()
+        lines = paragraph.split('\n')
+        for line in lines:
+            if not line=='':
+                # Split the annotation into individual elements
+                elements = line.split()
+                # Extract the class label and coordinates
+                coordinates = [int(coord) for coord in elements[1:]]
+                # Draw the polygon on the image
+                points = numpy.array(coordinates, dtype=numpy.int32).reshape((-1, 2))
+                cv2.fillPoly(image, [points], (255, 255, 255))
+                
+    # Save the image to the output path
+    cv2.imwrite(output_path, image)
+    
+    
 def paste_object(output_img_name, ball_number, human_number):
     output_img = cv2.imread(output_img_name)
     occlusion = 0
