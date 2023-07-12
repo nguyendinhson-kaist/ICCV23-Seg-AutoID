@@ -1,3 +1,24 @@
+import glob
+import os
+import random
+import cv2
+import numpy
+import albumentations as A
+
+data_dir = '../../data'
+image_dir = 'images'
+label_dir = 'labels'
+crop_image_dir = 'c_images'
+crop_label_dir = 'c_labels'
+annotation_dir = 'annotations'
+source_image_dir = 'src_images'
+source_label_dir = 'src_labels'
+aug_image_dir = 'new_images'
+aug_label_dir = 'new_labels'
+mask_dir = 'new_masks'
+
+
+
 def convert_text_to_png(annotation, output_path, h, w):
                         
     # Create a blank image
@@ -273,9 +294,15 @@ def paste_on_images(augmented_path, number_of_images):
             ball_number = 2
             human_number = 4
             paste_object(image_file, ball_number, human_number)
+            image_file = image_file.replace('src_images/0_aug', 'new_images')
+            apply_random_augmentation(image_file)
             if kont == number_of_images:
                 brk = 1
                 break
             kont = kont + 1
         if brk == 1:
             break
+    
+augmented_path = '../../data/src_images'
+number_of_images = 1
+paste_on_images(augmented_path, number_of_images)
