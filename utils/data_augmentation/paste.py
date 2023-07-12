@@ -25,6 +25,84 @@ def convert_text_to_png(annotation, output_path, h, w):
     cv2.imwrite(output_path, image)
     
     
+def apply_random_augmentation(image_path):
+    
+    # Open image
+    input_image = cv2.imread(image_path)
+    input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
+    
+    #Get output image dimensions
+    h, w = input_image.shape[:2]
+    
+    # Open annotations
+    label_path = image_path.replace('new_images', 'new_labels')
+    label_path = label_path.replace('.png', '.txt')
+    with open(label_path, 'r') as f:
+        label = f.read()
+    
+    # Create a folder to store masks for each instance
+    folder_path = label_path.replace('.txt', '')
+    folder_path = folder_path.replace('new_labels', 'new_masks')
+                
+    # Check if the folder exists
+    if not os.path.exists(folder_path):
+        # Create the folder
+        os.makedirs(folder_path)
+    
+    # Create a list to store all the masks
+    masks = []
+    classes = []
+    
+    # Define transform
+    transform = A.Compose([
+        A.HorizontalFlip(p=0.5),
+        A.RandomBrightnessContrast(p=0.2),
+    ])
+    
+    # Split the annotation into different paragraphs
+    paragraphs = label.split('\n\n')
+    for paragraph in paragraphs:
+        paragraph.strip()
+        lines = paragraph.split('\n')
+        for line in lines:
+            image = numpy.zeros((h, w, 3), dtype=numpy.uint8)
+            if not line=='':
+                
+                # Split the annotation into individual elements
+                elements = line.split()
+                
+                # Extract the class label and coordinates
+                clas = elements[0]
+                coordinates = [int(coord) for coord in elements[1:]]
+                
+                # Draw the polygon on the image
+                points = numpy.array(coordinates, dtype=numpy.int32).reshape((-1, 2))
+                cv2.fillPoly(image, [points], (255, 255, 255))
+                
+                # Save masks
+                masks.append(image)
+                classes.append(clas)
+                
+    # Apply transformations
+    transformed = transform(image=input_image, masks=masks)
+    transformed_image = transformed['image']
+    transformed_masks = transformed['masks']
+    
+    # Save new image
+    cv2.imwrite(image_path, transformed_image)
+    
+    # Save new masks
+    cont = 0
+    merged_mask = numpy.zeros_like(transformed_image)
+    for transformed_mask in transformed_masks:
+        mask_path = os.path.join(folder_path, 'mask_%d_%s.png' %(cont, classes[cont]))
+        cv2.imwrite(mask_path, transformed_mask)
+        cont = cont + 1
+        merged_mask = merged_mask + transformed_mask
+    mask_path = image_path.replace('new_images', 'new_masks')
+    cv2.imwrite(mask_path, merged_mask)
+    
+
 def paste_object(output_img_name, ball_number, human_number):
     output_img = cv2.imread(output_img_name)
     occlusion = 0
