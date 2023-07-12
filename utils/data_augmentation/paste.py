@@ -210,7 +210,7 @@ def paste_object(output_img_name, ball_number, human_number):
             # random_w = random.randint(-400, 400)
             
             #Update x_c and y_c with the random values
-            # x_c = x_c + random_wimage_path = 'Data/src_images/0_aug/KS-FR-BLOIS_24330_1513711368928_1:1.png'
+            # x_c = x_c + random_w
             # y_c = y_c + random_h
             
             #Change the polygon pairs coords to adapt it to the new center, create a mask for destination image and fill it with new pairs
@@ -240,15 +240,23 @@ def paste_object(output_img_name, ball_number, human_number):
             
             #Add the new object to the corresponding part of the output image
             output_img[y_c:y_c + h, x_c:x_c + w] += src_img * (src_mask > 0)
-            
     
-    #Create and write the new annotation file
-    with open(f'{data_dir}/{aug_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt', 'w') as f:
-        for dst_point in dst_points:
-            f.write(f'{dst_point}\n')
+    # Check previous annotations for the image
+    annotation_path = f'{data_dir}/{source_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt'
+    if not os.path.exists(annotation_path):
+        #Create and write the new annotation file
+        with open(f'{data_dir}/{aug_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt', 'w') as f:
+            for dst_point in dst_points:
+                f.write(f'{dst_point}\n')
+    else:
+        with open(f'{data_dir}/{aug_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt', 'w') as f, open(annotation_path, 'r') as a:
+            f.write(a.read())
+            f.write('\n')
+            for dst_point in dst_points:
+                f.write(f'{dst_point}\n')
     
     #Create the png mask 
-    #convert_text_to_png(f'{data_dir}/{aug_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt', f'{data_dir}/{mask_dir}/{os.path.basename(output_img_name)[:-4]}.png', dst_h, dst_w)
+    convert_text_to_png(f'{data_dir}/{aug_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt', f'{data_dir}/{mask_dir}/{os.path.basename(output_img_name)[:-4]}.png', dst_h, dst_w)
     
     #Write the new image
     cv2.imwrite(f'{data_dir}/{aug_image_dir}/{os.path.basename(output_img_name)}', output_img)
