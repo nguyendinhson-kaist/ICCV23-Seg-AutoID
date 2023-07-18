@@ -57,7 +57,7 @@ Freeze MAE pretrained on original dataset and finetune Linear layer on classific
 
 |F1 score|Background Accuracy|Ball Accuracy|Human Accuracy|
 |--------|-------------------|-------------|--------------|
-|74.94   |44/46              |22/25        |314/379       |
+|90.20   |45/46              |20/25        |377/379       |
 
 ## Resnet18
 ### Pretrained on ImageNet
