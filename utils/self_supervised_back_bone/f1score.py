@@ -119,7 +119,7 @@ class F1Score:
         accuracy = torch.where(torch.isnan(accuracy),
                                 torch.zeros_like(accuracy).type_as(TP),
                                 accuracy)
-        return TP, GP
+        return TP, GP, PP
 
     def __call__(self, acc_mat: torch.Tensor, predict: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
@@ -141,7 +141,7 @@ class F1Score:
             return self.calc_f1_micro(acc_mat), acc_mat
 
         f1_score = 0
-        for label_id in torch.cat((predict,target)).unique():
+        for label_id in range(acc_mat.shape[0] - 1):
             f1, GP = self.calc_f1_count_for_label(acc_mat, label_id)
 
             if self.average == 'weighted':
@@ -155,3 +155,4 @@ class F1Score:
             f1_score = torch.div(f1_score, acc_mat.shape[0] - 1)
 
         return f1_score, acc_mat
+    

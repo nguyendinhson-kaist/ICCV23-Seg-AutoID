@@ -49,3 +49,25 @@ ModuleNotFoundError: No module named 'torch._six'
 from torch import inf
 ```
 
+# Linear Probing Experiment
+- Loss: Cross Entropy
+- Evaluation metric: F1 score, accuracy each class
+## Masked AE
+Freeze MAE pretrained on original dataset and finetune Linear layer on classification datasets obtained
+
+|F1 score|Background Accuracy|Ball Accuracy|Human Accuracy|
+|--------|-------------------|-------------|--------------|
+|74.94   |44/46              |22/25        |314/379       |
+
+## Resnet18
+### Pretrained on ImageNet
+Freeze Resnet pretrained on ImageNet dataset and finetune Linear layer on classification datasets obtained
+
+|F1 score|Background Accuracy|Ball Accuracy|Human Accuracy|
+|--------|-------------------|-------------|--------------|
+|34.53   |3/46               |0/25         |376/379       |
+
+### Train from scrash on evaluation data
+|F1 score|Background Accuracy|Ball Accuracy|Human Accuracy|
+|--------|-------------------|-------------|--------------|
+|98.44   |44/46              |24/25        |379/379       |
