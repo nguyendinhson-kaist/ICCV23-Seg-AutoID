@@ -17,7 +17,7 @@ import sys
 import time
 
 from pycocotools.coco import COCO
-from coco_eval import CocoEvaluator
+from utils.coco_eval import CocoEvaluator
 
 
 OUTPUT_FILE = 'scores.txt'
