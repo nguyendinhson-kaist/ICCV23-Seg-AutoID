@@ -1,38 +1,76 @@
-import torch
-import numpy as np
 import argparse
 import os
 import pprint
-
-from detectron2.data.datasets import register_coco_instances
+import datetime
 
 from utils import *
+
+import mmdet
+import mmcv
+import mmengine
+from mmdet.apis import init_detector, inference_detector
+from mmdet.utils import register_all_modules
+from mmengine import Config
+from mmengine.runner import set_random_seed, Runner
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('datapath', type=str, 
-        help='dataset path')
+    parser.add_argument('config_file', type=str, 
+        help='config path')
+    parser.add_argument('model_name', type=str, 
+        help='model name, used for creating experiment folder')
+    parser.add_argument('--work-dir', type=str, default='./output',
+        help='working folder which contains checkpoint files, log, etc.')
+    parser.add_argument('--data-root', type=str, default='./data',
+        help='data folder path')
 
     args = parser.parse_args()
 
     return args
 
+def merge_args_to_config(cfg, args):
+    # Set up working dir to save files and logs.
+    cfg.work_dir =  args.work_dir
+
+    cfg.data_root = args.data_root + '/'
+
+    # We can set the evaluation interval to reduce the evaluation times
+    cfg.train_cfg.val_interval = 3
+    # We can set the checkpoint saving interval to reduce the storage cost
+    cfg.default_hooks.checkpoint.interval = 3
+    cfg.default_hooks.checkpoint.save_best = 'auto'
+
+    # The original learning rate (LR) is set for 8-GPU training.
+    # We divide it by 8 since we only use one GPU.
+    cfg.default_hooks.logger.interval = 10
+
+    # Set seed thus the results are more reproducible
+    # cfg.seed = 0
+    set_random_seed(0, deterministic=False)
+
+    # We can also use tensorboard to log the training process
+    cfg.visualizer.vis_backends.append({"type":'TensorboardVisBackend'})
+
+    return cfg
+
 def train():
     args = parse_args()
 
-    # register dataset
-    register_coco_instances('deepsports_val', {}, os.path.join(args.datapath, 'val.json'),
-                            os.path.join(args.datapath, 'val'))
-    register_coco_instances('deepsports_train', {}, os.path.join(args.datapath, 'train.json'),
-                            os.path.join(args.datapath, 'train'))
-    register_coco_instances("deepsports_test", {}, os.path.join(args.datapath, "test.json"),
-                            os.path.join(args.datapath, "test"))
-    
-    visualize('deepsports_train', 1, True)
-    print(pprint.pformat(dataset_analysis('deepsports_train')))
-    print(pprint.pformat(dataset_analysis('deepsports_val')))
-    print(pprint.pformat(dataset_analysis('deepsports_test')))
+    run_time = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    args.work_dir = args.work_dir + f'/{args.model_name}/exp_{run_time}'
+
+    cfg = Config.fromfile(args.config_file)
+    cfg = merge_args_to_config(cfg, args)
+
+    # register all modules in mmdet into the registries
+    register_all_modules()
+
+    # build the runner from config
+    runner = Runner.from_cfg(cfg)
+
+    # start training
+    runner.train()
     
 if __name__ == '__main__':
     train()
