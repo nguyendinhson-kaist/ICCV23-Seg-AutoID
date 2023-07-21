@@ -10,8 +10,3 @@ model = dict(
         mask_head = dict(num_classes = 2)
     )
 )
-
-model = dict(
-    backbone = dict(
-        frozen_stages=-1,
-        init_cfg = None))

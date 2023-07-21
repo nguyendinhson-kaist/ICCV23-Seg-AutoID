@@ -1,8 +1,10 @@
-_base_ = './mask-rcnn_r50-caffe_fpn_ms-poly-1x_vipriors.py'
+_base_ = './mask-rcnn_r50_fpn_poly_1x_vipriors.py'
 
 train_cfg = dict(max_epochs=36)
 # learning rate
 param_scheduler = [
+    dict(
+        type='LinearLR', start_factor=0.05, by_epoch=False, begin=0, end=20),
     dict(
         type='MultiStepLR',
         begin=0,
@@ -15,9 +17,4 @@ param_scheduler = [
 # optimizer
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='SGD', lr=1e-4, momentum=0.9, weight_decay=0.0001))
-
-model = dict(
-    backbone = dict(
-        frozen_stages=-1,
-        init_cfg = None))
+    optimizer=dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=0.0001))
