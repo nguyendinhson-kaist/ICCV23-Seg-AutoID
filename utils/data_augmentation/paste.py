@@ -10,14 +10,18 @@ import tqdm
 data_dir = '../../data'
 image_dir = 'images'
 label_dir = 'labels'
+
 crop_image_dir = 'c_images'
 crop_label_dir = 'c_labels'
-annotation_dir = 'annotations'
+
 source_image_dir = 'src_images'
 source_label_dir = 'src_labels'
+
+annotation_dir = 'new_annotations'
 aug_image_dir = 'new_images'
 aug_label_dir = 'new_labels'
 mask_dir = 'new_masks'
+
 augmented_path = '../../data/src_images'
 
 def convert2coco():
@@ -168,7 +172,7 @@ def define_pasting_area(image_file, total_objects):
     h, w = image.shape[:2]
     
     # Check if the image is right or left side of the court
-    if '_0.png' in image_file:
+    if '_0:' in image_file:
         right = 0
     else:
         right = 1
@@ -293,20 +297,21 @@ def define_pasting_area(image_file, total_objects):
         if bottommost_point is None or y > bottommost_point[1]:
             bottommost_point = (x, y)
     
-    # Apply thresholds on the two points
-    x, y = topmost_point
-    if y < h//3:
-        topmost_point = (x, h//3)
-    elif y > h//2:
-        topmost_point = (x, h//2)
-    x, y = bottommost_point
-    if y > 5*h//6:
-        bottommost_point = (x, 5*h//6)
-    elif y < 3*h//4:
-        bottommost_point = (x, 3*h//4)
+    # Apply thresholds on the two points if they exist
+    if topmost_point != None and bottommost_point != None:
+        x, y = topmost_point
+        if y < h//3:
+            topmost_point = (x, h//3)
+        elif y > h//2:
+            topmost_point = (x, h//2)
+        x, y = bottommost_point
+        if y > 5*h//6:
+            bottommost_point = (x, 5*h//6)
+        elif y < 3*h//4:
+            bottommost_point = (x, 3*h//4)
        
-    cv2.circle(blank_image_2, topmost_point, radius=10, color=(0, 0, 255), thickness=-1)
-    cv2.circle(blank_image_2, bottommost_point, radius=10, color=(0, 0, 255), thickness=-1)
+        cv2.circle(blank_image_2, topmost_point, radius=10, color=(0, 0, 255), thickness=-1)
+        cv2.circle(blank_image_2, bottommost_point, radius=10, color=(0, 0, 255), thickness=-1)
     
     # Get top and bot intersections
     top_inter = None
@@ -317,6 +322,19 @@ def define_pasting_area(image_file, total_objects):
             top_inter = (x, y)
         if bot_inter is None or y > bot_inter[1]:
             bot_inter = (x, y)
+    
+    # In case any point is not detected, apply 2022 winner's method
+    if top_inter == None or bot_inter == None or topmost_point == None or bottommost_point == None or top_inter == bot_inter or top_inter == topmost_point or bot_inter == bottommost_point or topmost_point == bottommost_point:
+        if right == 1:
+            topmost_point = (0, h//2 - h//5)
+            top_inter = (w - w//5, h//2 - h//5)
+            bot_inter = (w - w//5, h//2 + h//5)
+            bottommost_point = (0, h//2 + h//5)
+        else:
+            top_inter = (w//5, h//2 - h//5)
+            topmost_point = (w, h//2 - h//5)
+            bottommost_point = (w, h//2 + h//5)
+            bot_inter = (w//5, h//2 + h//5)
     
     if right == 1:
         final_points = [topmost_point, top_inter, bot_inter, bottommost_point]
@@ -469,7 +487,7 @@ def paste_object(output_img_name, ball_number, human_number):
     dst_points = []
     
     #If the image is not augmented
-    if '0_aug' not in output_img_name:
+    if '_aug' not in output_img_name:
         filename = os.path.basename(output_img_name).split(':')[0]
         with open(f'{data_dir}/{label_dir}/{filename}.txt') as f:
             for line in f.readlines():
@@ -525,12 +543,14 @@ def paste_object(output_img_name, ball_number, human_number):
             src_mask = np.zeros(src_img.shape, src_img.dtype)
             cv2.fillPoly(src_mask, [np.array(poly)], (255, 255, 255))
             
+            #Get the dimensions of the object image
+            h, w = output_img.shape[:2]
+            
             # Get the left-corner coord of the object to be pasted and convert to center points
             x_corner, y_corner = coords[i]
-            obj_w, obj_h = src_img.shape[:2]
+            obj_h, obj_w = src_img.shape[:2]
             x_c = x_corner + obj_w//2
             y_c = y_corner - obj_h//2
-            
             
             #Apply previously generated occlusion
             if occlusion == 1:
@@ -539,7 +559,7 @@ def paste_object(output_img_name, ball_number, human_number):
                     y_c = oclu_y
                     occlusion = 2
             
-            #Generate occlusion
+            #Generate occlusion, occlusion probability is a hyperparameter
             if occlusion == 0:
                 occlusion_prob = 0.2
                 prob = random.randint(1, 100)/100
@@ -549,14 +569,15 @@ def paste_object(output_img_name, ball_number, human_number):
                     oclu_type = objects[i]
                     occlusion = 1
             
+            # Adapt x coordinate in case the object doesn't fit in the image
+            if x_c + obj_w >= w:
+                x_c = x_c - obj_w - 50 # Security tolerance
+            
             #Change the polygon pairs coords to adapt it to the new center, create a mask for destination image and fill it with new pairs
             for p in poly:
                 dst_poly.append([int(p[0] + x_c), int(p[1] + y_c)])
             dst_mask = np.zeros(output_img.shape, output_img.dtype)
             cv2.fillPoly(dst_mask, [np.array(dst_poly, int)], (255, 255, 255))
-            
-            #Get the dimensions of the object image
-            h, w = src_img.shape[:2]
             
             #Write human or ball depending on the pasted object
             if objects[i] == 0: 
@@ -575,7 +596,7 @@ def paste_object(output_img_name, ball_number, human_number):
             output_img[dst_mask > 0] = 0
             
             #Add the new object to the corresponding part of the output image
-            output_img[y_c:y_c + h, x_c:x_c + w] += src_img * (src_mask > 0)
+            output_img[y_c:y_c + obj_h, x_c:x_c + obj_w] = output_img[y_c:y_c + obj_h, x_c:x_c + obj_w] + src_img * (src_mask > 0)
     
     # Check previous annotations for the image
     annotation_path = f'{data_dir}/{source_label_dir}/{os.path.basename(output_img_name)[:-4]}.txt'
@@ -613,7 +634,9 @@ def paste_on_images(augmented_path, number_of_images, ball_number, human_number)
         image_files = glob.glob(path)
         for image_file in image_files:
             paste_object(image_file, ball_number, human_number)
-            image_file = image_file.replace('src_images/0_aug', 'new_images')
+            image_file = image_file.replace('src_images', 'new_images')
+            for i in range(17):
+                image_file = image_file.replace('/'+str(i)+'_aug', '')
             apply_random_augmentation(image_file)
             if kont == number_of_images:
                 brk = 1
@@ -622,7 +645,7 @@ def paste_on_images(augmented_path, number_of_images, ball_number, human_number)
         if brk == 1:
             break
     
-def perform_copy_paste_and_random_augmentation(augmented_path, number_of_images):
+def perform_offline_copy_paste_and_random_augmentation(augmented_path, number_of_images):
     
     # This is the main function that call to the other functions. It has two inputs:
     # -The folder on which images for augmentation are.
