@@ -47,7 +47,7 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='poly_train.json',
+        ann_file='train.json',
         data_prefix=dict(img='train/'),
         metainfo = metainfo,
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
@@ -62,7 +62,7 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='poly_val.json',
+        ann_file='val.json',
         data_prefix=dict(img='val/'),
         metainfo = metainfo,
         test_mode=True,
@@ -72,7 +72,7 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=data_root + 'poly_val.json',
+    ann_file=data_root + 'val.json',
     metric=['segm', 'bbox'],
     format_only=False,
     backend_args=backend_args)
