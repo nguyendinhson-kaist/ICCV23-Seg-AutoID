@@ -1,6 +1,6 @@
-_base_ = './mask-rcnn_r50_fpn_1x_vipriors.py'
+_base_ = './mask-rcnn_swins_fpn_1x_vipriors.py'
 
-train_cfg = dict(max_epochs=72)
+train_cfg = dict(max_epochs=36)
 # learning rate
 param_scheduler = [
     # dict(
@@ -21,4 +21,4 @@ param_scheduler = [
 
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=1e-3, weight_decay=0.0001))
+    optimizer=dict(type='AdamW', lr=1e-4, weight_decay=0.0001))
