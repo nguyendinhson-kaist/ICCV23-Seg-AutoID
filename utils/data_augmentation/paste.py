@@ -7,6 +7,7 @@ import albumentations as A
 import json
 import tqdm
 
+
 data_dir = '../../data'
 image_dir = 'images'
 label_dir = 'labels'
