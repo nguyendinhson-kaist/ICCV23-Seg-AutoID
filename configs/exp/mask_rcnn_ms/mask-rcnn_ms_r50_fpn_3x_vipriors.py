@@ -1,6 +1,6 @@
-_base_ = './mask-rcnn_r50_fpn_1x_vipriors.py'
+_base_ = './mask-rcnn_ms_r50_fpn_1x_vipriors.py'
 
-train_cfg = dict(max_epochs=36)
+train_cfg = dict(max_epochs=96)
 # learning rate
 param_scheduler = [
     # dict(
