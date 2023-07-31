@@ -5,6 +5,9 @@ _base_ = [
 ]
 
 model = dict(
+    backbone = dict(
+        frozen_stages=-1,
+        init_cfg = None),
     roi_head = dict(
         bbox_head = dict(num_classes = 2),
         mask_head = dict(num_classes = 2)
