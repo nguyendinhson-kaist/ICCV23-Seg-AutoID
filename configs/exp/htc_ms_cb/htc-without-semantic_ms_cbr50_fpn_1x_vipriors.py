@@ -8,8 +8,14 @@ custom_imports=dict(imports=['modules'])
 
 model = dict(
     backbone = dict(
+        type='CBResNet',
+        cb_del_stages=1,
+        cb_inplanes=[64, 256, 512, 1024, 2048],
         frozen_stages=-1,
         init_cfg = None),
+    neck=dict(
+        type='CBFPN',
+    ),
     roi_head = dict(
         type='MSHTCRoIHead',
         bbox_head=[
@@ -175,6 +181,6 @@ model = dict(
     )
 )
 
-train_dataloader = dict(batch_size=4)
+train_dataloader = dict(batch_size=2)
 val_dataloader = dict(batch_size=2)
 

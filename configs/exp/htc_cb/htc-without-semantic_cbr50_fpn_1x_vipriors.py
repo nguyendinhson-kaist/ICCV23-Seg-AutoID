@@ -8,10 +8,15 @@ custom_imports=dict(imports=['modules'])
 
 model = dict(
     backbone = dict(
+        type='CBResNet',
+        cb_del_stages=1,
+        cb_inplanes=[64, 256, 512, 1024, 2048],
         frozen_stages=-1,
         init_cfg = None),
+    neck=dict(
+        type='CBFPN',
+    ),
     roi_head = dict(
-        type='MSHTCRoIHead',
         bbox_head=[
             dict(
                 type='Shared2FCBBoxHead',
@@ -90,91 +95,9 @@ model = dict(
                 num_classes=2,
                 loss_mask=dict(
                     type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
-        ],
-        mask_iou_head=[
-            dict(type='MaskIoUHead',
-                num_convs=4,
-                num_fcs=2,
-                roi_feat_size=14,
-                in_channels=256,
-                conv_out_channels=256,
-                fc_out_channels=1024,
-                num_classes=2),
-            dict(type='MaskIoUHead',
-                num_convs=4,
-                num_fcs=2,
-                roi_feat_size=14,
-                in_channels=256,
-                conv_out_channels=256,
-                fc_out_channels=1024,
-                num_classes=2),
-            dict(type='MaskIoUHead',
-                num_convs=4,
-                num_fcs=2,
-                roi_feat_size=14,
-                in_channels=256,
-                conv_out_channels=256,
-                fc_out_channels=1024,
-                num_classes=2)
-        ],
-    ),
-    train_cfg=dict(
-        rcnn=[
-            dict(
-                assigner=dict(
-                    type='MaxIoUAssigner',
-                    pos_iou_thr=0.5,
-                    neg_iou_thr=0.5,
-                    min_pos_iou=0.5,
-                    ignore_iof_thr=-1),
-                sampler=dict(
-                    type='RandomSampler',
-                    num=512,
-                    pos_fraction=0.25,
-                    neg_pos_ub=-1,
-                    add_gt_as_proposals=True),
-                mask_size=28,
-                pos_weight=-1,
-                mask_thr_binary=0.5,
-                debug=False),
-            dict(
-                assigner=dict(
-                    type='MaxIoUAssigner',
-                    pos_iou_thr=0.6,
-                    neg_iou_thr=0.6,
-                    min_pos_iou=0.6,
-                    ignore_iof_thr=-1),
-                sampler=dict(
-                    type='RandomSampler',
-                    num=512,
-                    pos_fraction=0.25,
-                    neg_pos_ub=-1,
-                    add_gt_as_proposals=True),
-                mask_size=28,
-                pos_weight=-1,
-                mask_thr_binary=0.5,
-                debug=False),
-            dict(
-                assigner=dict(
-                    type='MaxIoUAssigner',
-                    pos_iou_thr=0.7,
-                    neg_iou_thr=0.7,
-                    min_pos_iou=0.7,
-                    ignore_iof_thr=-1),
-                sampler=dict(
-                    type='RandomSampler',
-                    num=512,
-                    pos_fraction=0.25,
-                    neg_pos_ub=-1,
-                    add_gt_as_proposals=True),
-                mask_size=28,
-                pos_weight=-1,
-                mask_thr_binary=0.5,
-                debug=False)
         ]
     )
 )
 
-train_dataloader = dict(batch_size=4)
+train_dataloader = dict(batch_size=2)
 val_dataloader = dict(batch_size=2)
-
