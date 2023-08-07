@@ -15,8 +15,6 @@ from mmdet.registry import TRANSFORMS
 from mmdet.structures.mask import BitmapMasks
 from mmdet.structures.bbox import HorizontalBoxes
 
-# TODO: class to store paste object info
-# object has: mask (ndarray), img (ndarray), size (height, width), category, paste_coord (x_top, y_top)
 class PasteObject(object):
     def __init__(self, object_info, category, category_id, img_dir) -> None:
         self.image_id = object_info['image_id']
@@ -33,11 +31,16 @@ class PasteObject(object):
 
 @TRANSFORMS.register_module()
 class SpecialCopyPaste(BaseTransform):
-    """Add description
+    """Specialized CopyPaste Augmentation. It will read the cropped objects and their mask annotation from dataset
+    then randomly paste them on the source image.
+    For VIPriors 2023 competition, we also implement a basketball court estimator to estimate pasting area.
+    This technique will help augmented image look more realistic
 
     Args:
-        crop_dir (str):
-        crop_anno (str):
+        crop_dir (str): the folder dir where cropped objects are stored
+        crop_anno (str): the name of annotation file
+        max_num_objects (list[int]): the maximum number of pasted objects for each class.
+        bbox_occluded_thr, mask_occluded_thr (int): thresholds to filter the totally occluded objects after pasting
     """
 
     def __init__(
@@ -406,6 +409,7 @@ class SpecialCopyPaste(BaseTransform):
         return masks
     
     def _paste_list_to_gt_bboxes(self, dtype, device):
+        '''Convert paste list to goundtruth bboxes by mmdet format'''
         bboxes = []
 
         for paste_object in self.paste_list:
@@ -421,6 +425,7 @@ class SpecialCopyPaste(BaseTransform):
         )
     
     def _paste_list_to_gt_masks(self):
+        '''Convert paste list to goundtruth masks by mmdet format'''
         paste_masks = np.array([paste_object.mask for paste_object in self.paste_list])
 
         return BitmapMasks(
@@ -430,9 +435,11 @@ class SpecialCopyPaste(BaseTransform):
         )
     
     def _paste_list_to_gt_labels(self):
+        '''Convert paste list to goundtruth label by mmdet format'''
         return np.array([paste_object.category_id for paste_object in self.paste_list])
     
-    def _paste_list_to_gt_labels(self):
+    def _paste_list_to_gt_ignore_flags(self):
+        '''Convert paste list to goundtruth ignore flags by mmdet format'''
         return np.full((len(self.paste_list),), False, dtype=bool)
 
     def transform(self, results):
@@ -456,7 +463,7 @@ class SpecialCopyPaste(BaseTransform):
             device=dst_bboxes.device)
         src_masks = self._paste_list_to_gt_masks()
         src_labels = self._paste_list_to_gt_labels()
-        src_ignore_flags = self._paste_list_to_gt_labels()
+        src_ignore_flags = self._paste_list_to_gt_ignore_flags()
 
         if dst_masks is not None:
             # update masks and generate bboxes from updated masks
