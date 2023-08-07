@@ -232,12 +232,35 @@ def define_pasting_area(image_file, total_objects):
                 x1, y1, x2, y2 = enlarged_lines[i][0]
                 x3, y3, x4, y4 = enlarged_lines[j][0]
                 
-                m1 = (y2-y1)/(x2-x1)
-                m2 = (y4-y3)/(x4-x3)
+                if x1 != x2 and x3 != x4: #No lines are vertical
+                    m1 = (y2-y1)/(x2-x1)
+                    m2 = (y4-y3)/(x4-x3)
+                    if m1 != m2: #The lines intersect
+                        intersect_x = ((m1 * x1) - (m2 * x3) + y3 - y1) / (m1 - m2)
+                        intersect_y = m1 * (intersect_x - x1) + y1
+                    else: #There is no intersection
+                        intersect_x = None
+                        intersect_y = None
                 
-                if m1 != m2: #The lines intersect
-                    intersect_x = ((m1 * x1) - (m2 * x3) + y3 - y1) / (m1 - m2)
-                    intersect_y = m1 * (intersect_x - x1) + y1
+                elif x1 == x2 and x3 != x4: #Line 1 only is vertical
+                    m2 = (y4/y3)/(x4-x3)
+                    intersect_x = x1
+                    intersect_y = y3 - m2*(intersect_x - x3)
+                
+                elif x3 == x4 and x1 != x2: #Line 2 only is vertical
+                    m1 = (y2/y1)/(x2-x1)
+                    intersect_x = x3
+                    intersect_y = y1 - m1*(intersect_x - x1)
+                
+                elif x1==x2 and x3==x4: #Both lines are vertical
+                    intersect_x = None
+                    intersect_y = None
+                
+                elif y1==y2 and y3==y4: #Both lines are horizontal
+                    intersect_x = None
+                    intersect_y = None
+                
+                if intersect_x != None and intersect_y != None: #The intersection exists
                     if x1 < intersect_x and intersect_x < x2 and y1 < intersect_y and intersect_y < y2: #the intersection is inside the lines
                         
                         # Get the direction vectors of the lines
@@ -325,7 +348,14 @@ def define_pasting_area(image_file, total_objects):
             bot_inter = (x, y)
     
     # In case any point is not detected, apply 2022 winner's method
-    if top_inter == None or bot_inter == None or topmost_point == None or bottommost_point == None or top_inter == bot_inter or top_inter == topmost_point or bot_inter == bottommost_point or topmost_point == bottommost_point:
+    if top_inter == None or \
+        bot_inter == None or \
+        topmost_point == None or \
+        bottommost_point == None or \
+        top_inter == bot_inter or \
+        top_inter == topmost_point or \
+        bot_inter == bottommost_point or \
+        topmost_point == bottommost_point:
         if right == 1:
             topmost_point = (0, h//2 - h//5)
             top_inter = (w - w//5, h//2 - h//5)
