@@ -45,7 +45,7 @@ data
 └── test.txt
 ```
 
-**Step2:** Because mmdet does not support training with RLE format, we need to convert RLE annotation to Polygon annotation. Run bellow command:
+**Step2 (optional):** Because mmdet supports both RLE format and Binary format, you can convert RLE annotation to Polygon annotation. Run bellow command:
 
 ```bash
 python utils/rle2polygon.py data/train.json data/poly_train.json
@@ -72,7 +72,21 @@ data
 └── test.txt
 ```
 
-Note that we add prefix "poly_" by convention which matchs with the dataset config
+Note that we add prefix "poly_" by convention which matchs with the dataset config (change annotation file names in config file).
+
+**Step3 (optional):** we also use a specialized CopyPaste augmentation technique. To train models with our CopyPaste technique, you need to prepare a folder that contains all ground-truth instances from trainning set. Run the bellow command:
+
+```bash
+python utils/extract_objects.py data_root
+```
+
+A **cropped_objects** folder will be created inside the data folder.
+
+**Step4 (optional):** In case you want to visualize the augmented images, we provide a tool to help you. Run the below command:
+
+```bash
+python data_config --output-dir data_sample --not-show
+```
 
 ## Learn about configs
 
