@@ -31,9 +31,6 @@ class PasteObject(object):
         # load binary mask
         self.mask = mask.decode(object_info['segmentation']).astype(np.uint8)
 
-        if (self.mask.shape[0] != self.size[1]):
-            print(object_info)
-
 @TRANSFORMS.register_module()
 class SpecialCopyPaste(BaseTransform):
     """Add description
