@@ -25,6 +25,13 @@ mask_dir = 'new_masks'
 
 augmented_path = '../../data/src_images'
 
+# Define the hyperparameters for the copy-paste
+min_contour_area = 100000 # The minimum contour area to be considered in the basketball court detector. It should be big to detect just the court and discard the small objects.
+min_line_length = 300 # Minimum line lenght after Hough line detector. We only want to take large lines representing the edges of the basketball court, not short lines.
+min_angle = 25 # Minimum angle to be considered a valid intersection. If the angle between two lines is lower than that number it won't be considered as an intersection, as the lines would be too similar.
+min_point_distance = 80 # The distnce at which the intersections are averaged. If two intersections are closer than that number, they will be averaged into one point.
+tolerance = 50 # Security tolerance to fit an object into the image. As we are using bottom-left corner to paste an object, if the selected coordinate is too close to the edge the object will be out of the image. For that we will rest the width of the object to the selected coordinate and then rest a security tolerance just in case.
+
 def convert2coco():
     
     # This function is in charge of converting all the augmented annotations in txt files into a single final json file. It doesn't have any input.
@@ -188,7 +195,7 @@ def define_pasting_area(image_file, total_objects):
     blank_image = np.zeros_like(image)
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 100000:  # Adjust the threshold as needed
+        if area > min_contour_area:  # Adjust the threshold as needed
             filtered_contours.append(contour)
     cv2.drawContours(blank_image, filtered_contours, -1, (0, 255, 0), 2)
     
@@ -197,7 +204,6 @@ def define_pasting_area(image_file, total_objects):
     lines = cv2.HoughLinesP(gray, rho=1, theta=np.pi/180, threshold=50, minLineLength=100, maxLineGap=10)
 
     # Draw the detected lines on the original image
-    min_line_length = 300
     blank_image_2 = np.zeros_like(image)
     enlarged_lines = []
     scale_factor = 3.5
@@ -283,10 +289,10 @@ def define_pasting_area(image_file, total_objects):
 
                         # Convert the angle to degrees
                         angle_degrees = np.degrees(angle_radians)
-                        if angle_degrees > 25:
+                        if angle_degrees > min_angle:
                             filtered_intersections.append((intersect_x, intersect_y))
                 
-    filtered_intersections = average_close_points(filtered_intersections, 80)
+    filtered_intersections = average_close_points(filtered_intersections, min_point_distance)
     
     for point in filtered_intersections:
         intersect_x, intersect_y = point
@@ -602,7 +608,7 @@ def paste_object(output_img_name, ball_number, human_number):
             
             # Adapt x coordinate in case the object doesn't fit in the image
             if x_c + obj_w >= w:
-                x_c = x_c - obj_w - 50 # Security tolerance
+                x_c = x_c - obj_w - tolerance # Security tolerance
             
             #Change the polygon pairs coords to adapt it to the new center, create a mask for destination image and fill it with new pairs
             for p in poly:
