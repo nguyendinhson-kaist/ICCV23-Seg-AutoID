@@ -31,7 +31,9 @@ def parse_args():
 
 def merge_args_to_config(cfg, args):
     # Set up working dir to save files and logs.
-    cfg.work_dir =  args.work_dir
+    run_time = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    exp_name = f'/{args.model_name}/exp_{run_time}'
+    cfg.work_dir =  args.work_dir + exp_name
 
     cfg.data_root = args.data_root + '/'
 
@@ -47,18 +49,24 @@ def merge_args_to_config(cfg, args):
 
     # Set seed thus the results are more reproducible
     # cfg.seed = 0
-    set_random_seed(0, deterministic=False)
+    set_random_seed(0, deterministic=True)
 
     # We can also use tensorboard to log the training process
-    cfg.visualizer.vis_backends.append({"type":'TensorboardVisBackend'})
+    # cfg.visualizer.vis_backends.append({"type":'TensorboardVisBackend'})
+
+    # support wandb
+    cfg.visualizer.vis_backends.append(dict(
+        type='WandbVisBackend',
+        init_kwargs=dict(
+            project='ICCV23-Seg-AutoID',
+            entity='deal-vision',
+            name=f'exp_{run_time}',
+            group=args.model_name)))
 
     return cfg
 
 def train():
     args = parse_args()
-
-    run_time = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-    args.work_dir = args.work_dir + f'/{args.model_name}/exp_{run_time}'
 
     cfg = Config.fromfile(args.config_file)
     cfg = merge_args_to_config(cfg, args)
