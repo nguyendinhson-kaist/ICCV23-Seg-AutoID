@@ -49,7 +49,7 @@ def merge_args_to_config(cfg, args):
 
     # Set seed thus the results are more reproducible
     # cfg.seed = 0
-    set_random_seed(0, deterministic=True)
+    set_random_seed(0, deterministic=False)
 
     # We can also use tensorboard to log the training process
     # cfg.visualizer.vis_backends.append({"type":'TensorboardVisBackend'})
