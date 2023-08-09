@@ -12,15 +12,15 @@ class CBFPN(FPN):
             inputs = [inputs]
             
         # TODO: support auxiliary loss
-        # if self.training:
-        #     outs = []
-        #     for x in inputs:
-        #         out = super().forward(x)
-        #         outs.append(out)
-        #     return outs
-        # else:
-        #     out = super().forward(inputs[-1])
-        #     return out
+        if self.training:
+            outs = []
+            for x in inputs:
+                out = super().forward(x)
+                outs.append(out)
+            return outs
+        else:
+            out = super().forward(inputs[-1])
+            return out
 
-        out = super().forward(inputs[-1])
-        return out
+        # out = super().forward(inputs[-1])
+        # return out

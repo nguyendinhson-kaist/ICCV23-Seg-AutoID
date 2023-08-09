@@ -7,6 +7,7 @@ _base_ = [
 custom_imports=dict(imports=['modules'])
 
 model = dict(
+    type="CBNetDetector",
     backbone = dict(
         _delete_=True,
         type='CBSwinTransformer',

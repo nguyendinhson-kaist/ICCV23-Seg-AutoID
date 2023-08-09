@@ -7,7 +7,7 @@ _base_ = [
 custom_imports=dict(imports=['modules'])
 
 model = dict(
-    type='MaskScoringRCNN',
+    type="CBNetDetector",
     backbone = dict(
         type='CBResNet',
         cb_del_stages=1,
