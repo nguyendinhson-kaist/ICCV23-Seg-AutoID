@@ -20,7 +20,6 @@ class PasteObject(object):
         self.image_id = object_info['image_id']
         self.category = category
         self.category_id = category_id
-        self.size = (object_info['width'], object_info['height'])
         self.paste_coord = None
 
         # load image
@@ -28,6 +27,8 @@ class PasteObject(object):
 
         # load binary mask
         self.mask = mask.decode(object_info['segmentation']).astype(np.uint8)
+
+        self.size = (self.mask.shape[1], self.mask.shape[0])
 
 @TRANSFORMS.register_module()
 class SpecialCopyPaste(BaseTransform):
@@ -119,6 +120,9 @@ class SpecialCopyPaste(BaseTransform):
             # add to paste list
             self.paste_list = self.paste_list + \
                 [PasteObject(info, cat, cat_id, img_dir) for info in samples]
+            
+        # shuffle the list
+        random.shuffle(self.paste_list)
 
     def _average_close_points(self, points, threshold):
         '''averaging the intersections for defining the pasting area
@@ -375,8 +379,8 @@ class SpecialCopyPaste(BaseTransform):
             paste_w, paste_h = paste_object.size
 
             if apply_predefined:
-                paste_x = random_x if random_x+paste_w <= w else w - paste_w
-                paste_y = random_y if random_y+paste_h <= h else h - paste_h
+                paste_x = min(random_x, w-paste_w)
+                paste_y = min(random_y, h-paste_h)
             else:
                 paste_x = max(random_x - paste_w, 0.0)
                 paste_y = max(random_y - paste_h, 0.0)
@@ -394,7 +398,7 @@ class SpecialCopyPaste(BaseTransform):
         paste_masks = np.array([paste_object.mask for paste_object in self.paste_list])
 
         for i, paste_object in enumerate(self.paste_list):
-            if i == len(self.paste_list):
+            if i == len(self.paste_list) - 1:
                 break
 
             composed_mask = np.where(np.any(paste_masks[i+1:], axis=0), 1, 0)

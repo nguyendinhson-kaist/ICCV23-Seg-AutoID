@@ -66,9 +66,9 @@ def main():
     visualizer = VISUALIZERS.build(cfg.visualizer)
     visualizer.dataset_meta = dataset.metainfo
 
-    progress_bar = ProgressBar(cfg.num_sample)
+    progress_bar = ProgressBar(args.num_sample)
     for item in dataset:
-        if cfg.num_sample <= 0:
+        if args.num_sample <= 0:
             break
         
         img = item['inputs'].permute(1, 2, 0).numpy()
@@ -102,7 +102,7 @@ def main():
 
         progress_bar.update()
 
-        cfg.num_sample -= 1
+        args.num_sample -= 1
 
 
 if __name__ == '__main__':
