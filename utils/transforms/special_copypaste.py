@@ -374,18 +374,22 @@ class SpecialCopyPaste(BaseTransform):
                 if distance > 0:
                     point_inside = True
             
-            # (random_x, random_y) should be bottom-right if basketball court can be detected
-            # otherwise, it should be top-left
+            # calculate paste coordinate
             paste_w, paste_h = paste_object.size
 
+            # (random_x, random_y) should be bottom-right if basketball court can be detected
+            # otherwise, it should be top-left
             if apply_predefined:
-                paste_x = min(random_x, w-paste_w)
-                paste_y = min(random_y, h-paste_h)
+                paste_x = random_x
+                paste_y = random_y
             else:
-                paste_x = max(random_x - paste_w, 0.0)
-                paste_y = max(random_y - paste_h, 0.0)
-            paste_x = math.floor(paste_x)
-            paste_y = math.floor(paste_y)
+                paste_x = random_x - paste_w
+                paste_y = random_y - paste_h
+
+            # validate paste coordinate
+            paste_x = math.floor(min(random_x, w-paste_w))
+            paste_y = math.floor(min(random_y, h-paste_h))
+
             paste_object.paste_coord = (paste_x, paste_y)
 
             # update mask to image scale
