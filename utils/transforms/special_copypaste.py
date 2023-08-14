@@ -387,8 +387,8 @@ class SpecialCopyPaste(BaseTransform):
                 paste_y = random_y - paste_h
 
             # validate paste coordinate
-            paste_x = math.floor(min(random_x, w-paste_w))
-            paste_y = math.floor(min(random_y, h-paste_h))
+            paste_x = math.floor(max(min(paste_x, w-paste_w), 0.0))
+            paste_y = math.floor(max(min(paste_y, h-paste_h), 0.0))
 
             paste_object.paste_coord = (paste_x, paste_y)
 
