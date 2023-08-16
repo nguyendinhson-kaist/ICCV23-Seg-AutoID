@@ -23,6 +23,12 @@ mim install "mmcv>=2.0.0"
 mim install mmdet
 ```
 
+**Step4:** We also use some backbone from mmpretrain. Command:
+
+```bash
+mim install "mmpretrain[multimodal]>=1.0.0rc8"
+```
+
 Other packages can be install by pip or conda --forge. Please check requirements.txt for more detail
 
 ## Data preparation

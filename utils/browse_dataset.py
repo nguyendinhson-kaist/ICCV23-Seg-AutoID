@@ -53,10 +53,10 @@ def main():
     # add visualizer
     cfg.visualizer = dict(
         type='DetLocalVisualizer',
-        vis_backends=[
-            dict(type='LocalVisBackend'),
-            dict(type='TensorboardVisBackend'),
-        ],
+        # vis_backends=[
+        #     dict(type='LocalVisBackend'),
+        #     dict(type='TensorboardVisBackend'),
+        # ],
         name='visualizer')
 
     # register all modules in mmdet into the registries
