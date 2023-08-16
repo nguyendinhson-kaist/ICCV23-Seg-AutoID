@@ -24,7 +24,7 @@ def make_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-def extract_objects(data_root: str, img_dir: str, anno_path: str):
+def extract_objects(data_root: str, img_dir: str, anno_path: str, mode: str):
     '''Cropped all objects from data folder, store them in a 
     folder with their cropped mask annotation'''
 
@@ -34,7 +34,7 @@ def extract_objects(data_root: str, img_dir: str, anno_path: str):
     # TODO: create folders
     mask_dict = dict()
     mask_dict['categories'] = []
-    object_folder = 'cropped_objects'
+    object_folder = mode+'_cropped_objects'
     crop_folder = os.path.join(data_root, object_folder)
     make_dir(crop_folder)
 
@@ -98,4 +98,4 @@ if __name__ == '__main__':
     img_dir = os.path.join(args.data_root, args.mode)
     anno_path = os.path.join(args.data_root, args.mode+'.json')
 
-    extract_objects(args.data_root, img_dir, anno_path)
+    extract_objects(args.data_root, img_dir, anno_path, args.mode)
