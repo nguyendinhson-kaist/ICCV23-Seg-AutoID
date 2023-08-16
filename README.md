@@ -78,20 +78,26 @@ data
 └── test.txt
 ```
 
-Note that we add prefix "poly_" by convention which matchs with the dataset config (change annotation file names in config file).
-
-**Step3 (optional):** we also use a specialized CopyPaste augmentation technique. To train models with our CopyPaste technique, you need to prepare a folder that contains all ground-truth instances from trainning set. Run the bellow command:
+**Step3:** You can train the model on train+val dataset to have higher accuracy. Run the bellow command:
 
 ```bash
-python utils/extract_objects.py data_root
+python utils/merge_dataset.py data_root
+```
+
+Note that we add prefix "poly_" by convention which matchs with the dataset config (change annotation file names in config file).
+
+**Step4 (optional):** we also use a specialized CopyPaste augmentation technique. To train models with our CopyPaste technique, you need to prepare a folder that contains all ground-truth instances from trainning set. Run the bellow command:
+
+```bash
+python utils/extract_objects.py data_root mode
 ```
 
 A **cropped_objects** folder will be created inside the data folder.
 
-**Step4 (optional):** In case you want to visualize the augmented images, we provide a tool to help you. Run the below command:
+**Step5 (optional):** In case you want to visualize the augmented images, we provide a tool to help you. Run the below command:
 
 ```bash
-python data_config --output-dir data_sample --not-show
+python utils/browser_dataset.py data_config --output-dir data_sample --not-show
 ```
 
 ## Learn about configs
@@ -119,7 +125,7 @@ Our dataset config can be found at:
 Mask R-CNN model configs:
 
 ```text
-./configs/exp/mask_rcnn
+./configs/exp/{model_name}/*.py
 ```
 
 ## Train a model

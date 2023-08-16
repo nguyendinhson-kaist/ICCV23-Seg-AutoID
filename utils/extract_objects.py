@@ -12,6 +12,9 @@ def parse_args():
 
     parser.add_argument('data_root', type=str, 
         help='data path')
+    
+    parser.add_argument('mode', type=str, choices=['train', 'val', 'train_val'],
+        help='the mode of dataset: train/val/train_val')
 
     args = parser.parse_args()
 
@@ -92,7 +95,7 @@ def extract_objects(data_root: str, img_dir: str, anno_path: str):
 if __name__ == '__main__':
     args = parse_args()
 
-    img_dir = os.path.join(args.data_root, 'train')
-    anno_path = os.path.join(args.data_root, 'train.json')
+    img_dir = os.path.join(args.data_root, args.mode)
+    anno_path = os.path.join(args.data_root, args.mode+'.json')
 
     extract_objects(args.data_root, img_dir, anno_path)
