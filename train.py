@@ -3,7 +3,9 @@ import os
 import pprint
 import datetime
 
+# support custom packages import
 from utils import *
+from modules import *
 
 import mmdet
 import mmcv
