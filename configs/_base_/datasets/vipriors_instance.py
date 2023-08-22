@@ -91,9 +91,10 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(
         type='SpecialCopyPaste', 
-        crop_dir='data/cropped_objects', 
+        crop_dir='data/train_val_cropped_objects', 
         crop_anno='crop.json',
-        max_num_objects=[10,20]),
+        max_num_objects=[10,20],
+        prob=0.8),
     # dict(type='Resize', scale=(
     #     1920,
     #     1440,
@@ -134,8 +135,8 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='train.json',
-        data_prefix=dict(img='train/'),
+        ann_file='train_val.json',
+        data_prefix=dict(img='train_val/'),
         metainfo = metainfo,
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline,

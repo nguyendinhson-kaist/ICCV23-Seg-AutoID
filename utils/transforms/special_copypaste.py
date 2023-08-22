@@ -51,8 +51,10 @@ class SpecialCopyPaste(BaseTransform):
         max_num_objects: List[int],
         bbox_occluded_thr: int = 10,
         mask_occluded_thr: int = 300,
+        prob: float = 0.5
     ) -> None:
-        
+        assert 0 <= prob <= 1
+
         self.crop_dir = crop_dir
         self.crop_anno = crop_anno
         self.mask_info = dict()
@@ -61,6 +63,7 @@ class SpecialCopyPaste(BaseTransform):
         self.max_num_objects = max_num_objects
         self.bbox_occluded_thr = bbox_occluded_thr
         self.mask_occluded_thr = mask_occluded_thr
+        self.prob = prob
 
         # The minimum contour area to be considered in the basketball court detector. 
         # It should be big to detect just the court and discard the small objects.
@@ -85,6 +88,9 @@ class SpecialCopyPaste(BaseTransform):
         self._load_object_list()
         assert len(self.categories) == len(self.max_num_objects)
         
+    def _random_prob(self) -> float:
+        return random.uniform(0, 1)
+    
     def _load_object_list(self):
         '''Load categories from crop annotation file then export all info into a dict'''
         crop_anno_path = osp.join(self.crop_dir, self.crop_anno)
@@ -451,6 +457,9 @@ class SpecialCopyPaste(BaseTransform):
         return np.full((len(self.paste_list),), False, dtype=bool)
 
     def transform(self, results):
+        if self._random_prob() > self.prob:
+            return results
+
         self._select_object()
         self._assign_paste_coord(results)
         self._update_occluded_masks()
