@@ -16,4 +16,4 @@ param_scheduler = [
 
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=1e-3, weight_decay=0.0001))
+    optimizer=dict(type='AdamW', lr=5e-4, weight_decay=0.0001))

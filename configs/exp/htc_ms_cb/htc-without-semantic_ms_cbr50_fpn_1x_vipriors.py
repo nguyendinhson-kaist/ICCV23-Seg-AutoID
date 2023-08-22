@@ -26,14 +26,18 @@ model = dict(
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.1, 0.1, 0.2, 0.2]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
@@ -43,14 +47,18 @@ model = dict(
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.05, 0.05, 0.1, 0.1]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
@@ -60,14 +68,18 @@ model = dict(
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.033, 0.033, 0.067, 0.067]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
         ],
@@ -80,7 +92,7 @@ model = dict(
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0)),
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
@@ -88,7 +100,7 @@ model = dict(
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0)),
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
@@ -96,7 +108,7 @@ model = dict(
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0))
         ],
         mask_iou_head=[
             dict(type='MaskIoUHead',

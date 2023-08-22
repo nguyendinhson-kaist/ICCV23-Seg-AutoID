@@ -21,7 +21,7 @@ model = dict(
         patch_norm=True,
         out_indices=(0, 1, 2, 3),
         with_cp=False,
-        convert_weights=True,
+        convert_weights=False,
         frozen_stages=-1,
         init_cfg=None),
     neck=dict(in_channels=[128, 256, 512, 1024]),

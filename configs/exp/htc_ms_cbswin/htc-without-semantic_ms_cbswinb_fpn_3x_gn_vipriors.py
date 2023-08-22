@@ -1,4 +1,4 @@
-_base_ = './htc-without-semantic_ms_cbswinb_fpn_1x_vipriors.py'
+_base_ = './htc-without-semantic_ms_cbswinb_fpn_1x_gn_vipriors.py'
 
 train_cfg = dict(max_epochs=720)
 # learning rate
