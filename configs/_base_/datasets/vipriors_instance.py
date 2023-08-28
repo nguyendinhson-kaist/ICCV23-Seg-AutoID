@@ -93,8 +93,8 @@ train_pipeline = [
         type='SpecialCopyPaste', 
         crop_dir='data/train_val_cropped_objects', 
         crop_anno='crop.json',
-        max_num_objects=[10,20],
-        prob=0.8),
+        max_num_objects=[20,40],
+        prob=1.0),
     # dict(type='Resize', scale=(
     #     1920,
     #     1440,
@@ -111,10 +111,10 @@ train_pipeline = [
     # photometric transform
     dict(type='PhotoMetricDistortion'),
     # geometric transform
-    dict(type='ShearX', max_mag=5.0, prob=0.2, img_border_value=img_mean),
-    dict(type='ShearY', max_mag=5.0, prob=0.2, img_border_value=img_mean),
-    dict(type='TranslateX', max_mag=0.05, prob=0.2, img_border_value=img_mean),
-    dict(type='TranslateY', max_mag=0.05, prob=0.2, img_border_value=img_mean),
+    dict(type='ShearX', max_mag=10.0, prob=0.4, img_border_value=img_mean),
+    dict(type='ShearY', max_mag=10.0, prob=0.4, img_border_value=img_mean),
+    dict(type='TranslateX', max_mag=0.1, prob=0.4, img_border_value=img_mean),
+    dict(type='TranslateY', max_mag=0.1, prob=0.4, img_border_value=img_mean),
     dict(type='RandomFlip', prob=0.5),
     dict(
         type='RandomCrop',

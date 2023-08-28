@@ -371,7 +371,11 @@ class SpecialCopyPaste(BaseTransform):
         
         # Create pasting area
         hull = cv2.convexHull(final_points)
-        for paste_object in self.paste_list:
+
+        i = 0
+        # for paste_object in self.paste_list:
+        while i < len(self.paste_list):
+            paste_object = self.paste_list[i]
             point_inside = False
             while not point_inside:
                 random_x = random.uniform(min_x, max_x)
@@ -402,6 +406,28 @@ class SpecialCopyPaste(BaseTransform):
             expanded_mask = np.zeros(shape=(h, w), dtype=np.uint8)
             expanded_mask[paste_y:paste_y+paste_h, paste_x:paste_x+paste_w] = paste_object.mask
             paste_object.mask = expanded_mask
+
+            # random add human-ball interaction
+            if i < len(self.paste_list) - 1:
+                next_paste_object = self.paste_list[i+1]
+                next_paste_w, next_paste_h = next_paste_object.size
+                if paste_object.category == 'human' \
+                    and next_paste_object.category == 'ball' \
+                    and paste_w >= next_paste_w \
+                    and paste_h >= next_paste_h:
+                    
+                    next_paste_x = math.floor(random.uniform(paste_x, paste_x+paste_w-next_paste_w))
+                    next_paste_y = math.floor(random.uniform(paste_y, paste_y+paste_h-next_paste_h))
+                    next_paste_object.paste_coord = (next_paste_x, next_paste_y)
+
+                    next_expanded_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+                    next_expanded_mask[next_paste_y:next_paste_y+next_paste_h, next_paste_x:next_paste_x+next_paste_w] = next_paste_object.mask
+                    next_paste_object.mask = next_expanded_mask
+
+                    i += 1
+
+            # increase index
+            i += 1
 
     def _update_occluded_masks(self):
         '''update mask of paste objects if occluded'''
