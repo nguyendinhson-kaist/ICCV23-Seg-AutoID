@@ -26,8 +26,16 @@ def parse_args():
         help='working folder which contains checkpoint files, log, etc.')
     parser.add_argument('--data-root', type=str, default='./data',
         help='data folder path')
+    parser.add_argument(
+        '--launcher',
+        choices=['none', 'pytorch', 'slurm', 'mpi'],
+        default='none',
+        help='job launcher')
+    parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
 
     args = parser.parse_args()
+    if 'LOCAL_RANK' not in os.environ:
+        os.environ['LOCAL_RANK'] = str(args.local_rank)
 
     return args
 
@@ -64,6 +72,8 @@ def merge_args_to_config(cfg, args):
             entity='deal-vision',
             name=f'exp_{run_time}',
             group=args.model_name)))
+    
+    cfg.launcher=args.launcher
 
     return cfg
 

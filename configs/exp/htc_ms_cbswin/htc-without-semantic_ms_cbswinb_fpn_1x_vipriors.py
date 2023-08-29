@@ -7,6 +7,7 @@ _base_ = [
 custom_imports=dict(imports=['modules'])
 
 pretrained = 'ssl_pretrain/converted_mask_rcnn_swinb_exp_20230804-152312.pth'
+# norm_cfg = dict(type='SyncBN', requires_grad=True)
 
 model = dict(
     type="CBNetDetector",
@@ -39,7 +40,11 @@ model = dict(
         type='MSHTCRoIHead',
         bbox_head=[
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
+                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -60,7 +65,11 @@ model = dict(
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
+                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -81,7 +90,11 @@ model = dict(
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
+                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -106,27 +119,30 @@ model = dict(
                 type='HTCMaskHead',
                 with_conv_res=False,
                 num_convs=4,
+                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0)),
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
+                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0)),
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
+                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,
                 loss_mask=dict(
-                    type='CrossEntropyLoss', use_mask=True, loss_weight=2.0))
+                    type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
         ],
         mask_iou_head=[
             dict(type='MaskIoUHead',

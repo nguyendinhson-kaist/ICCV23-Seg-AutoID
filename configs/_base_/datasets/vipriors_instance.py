@@ -23,11 +23,14 @@ metainfo = {
 
 custom_imports=dict(imports=['utils.transforms'])
 
-img_size = (1920, 1440) # w, h
+img_size = (1760, 1280) # w, h
 
 # imagenet mean/std
 img_mean = (123.675, 116.28, 103.53)
 img_std = (58.395, 57.12, 57.375)
+# deepsport mean/std
+# img_mean = (94.831, 82.198, 80.075)
+# img_std = (80.437, 69.446, 67.061)
 
 # if you want to use built-in CopyPaste in mmdet, uncomment below config
 # load_pipeline = [
