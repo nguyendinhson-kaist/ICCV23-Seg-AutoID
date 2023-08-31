@@ -167,9 +167,68 @@ class DetInstanceTTAModel(BaseTTAModel):
         results.masks = _det_masks
         results.scores = _det_bboxes[:, -1]
         results.labels = det_labels
+
+        results = self.filter_invalid_preds(results)
+
         det_results = data_samples[0]
         det_results.pred_instances = results
         # print(results.bboxes.shape)
         # print(results.masks.shape)
         # print(results.labels.shape)
         return det_results
+    
+    def filter_invalid_preds(self, results: InstanceData) -> InstanceData:
+        bboxes = results.bboxes
+        masks = results.masks
+        scores = results.scores
+        labels = results.labels
+
+        # process human predictions
+        human_idx = labels == 0
+        human_bboxes = bboxes[human_idx]
+        human_masks = masks[human_idx]
+        human_scores = scores[human_idx]
+        human_labels = labels[human_idx]
+
+        # process ball predictions
+        ball_idx = labels == 1
+        ball_bboxes = bboxes[ball_idx]
+        ball_masks = masks[ball_idx]
+        ball_scores = scores[ball_idx]
+        ball_labels = labels[ball_idx]
+
+        filtered_bboxes = []
+        filtered_masks = []
+        filtered_scores = []
+        filtered_labels = []
+
+        if ball_bboxes.numel() == 0 or ball_scores[0] < 0.2:
+            return results
+
+        for i in range(ball_bboxes.shape[0]):
+            if i == 0: 
+                filtered_bboxes.append(ball_bboxes[i:i+1])
+                filtered_masks.append(ball_masks[i:i+1])
+                filtered_scores.append(ball_scores[i:i+1])
+                filtered_labels.append(ball_labels[i:i+1])
+                continue
+
+            # iou = bbox_overlaps(ball_bboxes[0], ball_bboxes[i])
+            # if iou > 0 and ball_bboxes[i, ]:
+            #     filtered_bboxes.append(ball_bboxes[i])
+            #     filtered_masks.append(ball_masks[i])
+            #     filtered_scores.append(ball_scores[i])
+            #     filtered_labels.append(ball_labels[i])
+        
+        filtered_bboxes = torch.cat(filtered_bboxes, dim=0)
+        filtered_masks = torch.cat(filtered_masks, dim=0)
+        filtered_scores = torch.cat(filtered_scores, dim=0)
+        filtered_labels = torch.cat(filtered_labels, dim=0)
+
+        filter_results = InstanceData()
+        filter_results.bboxes = torch.cat([human_bboxes, filtered_bboxes])
+        filter_results.masks = torch.cat([human_masks, filtered_masks])
+        filter_results.scores = torch.cat([human_scores, filtered_scores])
+        filter_results.labels = torch.cat([human_labels, filtered_labels])
+        
+        return filter_results
