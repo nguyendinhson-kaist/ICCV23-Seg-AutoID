@@ -30,6 +30,16 @@ def parse_args():
         help='data folder path')
     parser.add_argument('--max-epochs', type=int, default=12,
         help='the number of epochs used for swa')
+    parser.add_argument(
+        '--launcher',
+        choices=['none', 'pytorch', 'slurm', 'mpi'],
+        default='none',
+        help='job launcher')
+    parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+
+    args = parser.parse_args()
+    if 'LOCAL_RANK' not in os.environ:
+        os.environ['LOCAL_RANK'] = str(args.local_rank)
 
     args = parser.parse_args()
 
