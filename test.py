@@ -4,8 +4,12 @@ import argparse
 import os
 import pprint
 import datetime
+import warnings
+from copy import deepcopy
 
+# support custom packages import
 from utils import *
+from modules import *
 
 import mmdet
 import mmcv
@@ -13,6 +17,7 @@ import mmengine
 from mmdet.apis import init_detector, inference_detector
 from mmdet.utils import register_all_modules
 from mmengine import Config
+from mmengine import ConfigDict
 from mmengine.runner import set_random_seed, Runner
 from mmdet.engine.hooks.utils import trigger_visualization_hook
 
@@ -36,6 +41,7 @@ def parse_args():
         help='time to show each predicted image')
     parser.add_argument('--show-dir', type=str,
         help='folder name to save predicted images')
+    parser.add_argument('--tta', action='store_true')
 
     args = parser.parse_args()
 
@@ -74,6 +80,57 @@ def merge_args_to_config(cfg, args):
             format_only=True,
             ann_file=cfg.data_root + 'test.json',
             outfile_prefix=cfg.work_dir+'/result')
+        
+    if args.tta:
+
+        if 'tta_model' not in cfg:
+            warnings.warn('Cannot find ``tta_model`` in config, '
+                          'we will set it as default.')
+            cfg.tta_model = dict(
+                type='DetInstanceTTAModel',
+                tta_cfg=dict(
+                    nms=dict(type='nms', iou_threshold=0.5), max_per_img=100))
+        if 'tta_pipeline' not in cfg:
+            warnings.warn('Cannot find ``tta_pipeline`` in config, '
+                          'we will set it as default.')
+            test_data_cfg = cfg.test_dataloader.dataset
+            while 'dataset' in test_data_cfg:
+                test_data_cfg = test_data_cfg['dataset']
+            cfg.tta_pipeline = deepcopy(test_data_cfg.pipeline)
+
+            # add test time augmentation
+            img_scale_factors = [1.0, 1.5, 2.0]
+            aug_tta = dict(
+                type='TestTimeAug',
+                transforms=[
+                    [
+                        dict(type='Resize', scale_factor=1.0, keep_ratio=True),
+                        dict(type='Resize', scale_factor=0.8, keep_ratio=True),
+                        dict(type='Resize', scale_factor=1.5, keep_ratio=True),
+                        dict(type='Resize', scale=(1920, 1440), keep_ratio=True),
+                        dict(type='Resize', scale=(1760, 1280), keep_ratio=True)
+                    ],
+                    [
+                        dict(type='RandomFlip', prob=0.),
+                        dict(type='RandomFlip', prob=1.)
+                    ],
+                    [
+                        dict(
+                            type='PackDetInputs',
+                            meta_keys=('img_id', 'img_path', 'ori_shape',
+                                       'img_shape', 'scale_factor', 'flip',
+                                       'flip_direction'))
+                    ],
+                ])
+            
+            cfg.tta_pipeline = [
+                dict(backend_args=None, type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+                aug_tta
+            ]
+
+        cfg.model = ConfigDict(**cfg.tta_model, module=cfg.model)
+        cfg.test_dataloader.dataset.pipeline = cfg.tta_pipeline
     
     return cfg
 

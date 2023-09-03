@@ -1,4 +1,4 @@
-_base_ = './htc-without-semantic_ms_swinb_fpn_1x_vipriors.py'
+_base_ = './htc-without-semantic_ms_hrnet-w32_1x_vipriors.py'
 
 train_cfg = dict(max_epochs=36)
 # learning rate
@@ -16,4 +16,4 @@ param_scheduler = [
 
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=5e-4, weight_decay=0.0001))
+    optimizer=dict(type='AdamW', lr=1e-5, weight_decay=0.0001))

@@ -6,7 +6,16 @@ _base_ = [
 
 custom_imports=dict(imports=['modules'])
 
+# you can download our pretrain checkpoint here: 
+# https://drive.google.com/file/d/1mR7qeJ430fJwmGJXwOhJaByLOhMD8xKI/view?usp=sharing
+# please notice that this does not violate the rules of the competition
+# we firstly train MaskRCNN with SwinB backbone on the challenge dataset,
+# then use the final checkpoint for CBSwinB backbone to reduce training time
+pretrained = 'pretrain/mask_rcnn_swinb.pth' 
+# norm_cfg = dict(type='SyncBN', requires_grad=True)
+
 model = dict(
+    type="CBNetDetector",
     backbone = dict(
         _delete_=True,
         type='CBSwinTransformer',
@@ -23,9 +32,10 @@ model = dict(
         patch_norm=True,
         out_indices=(0, 1, 2, 3),
         with_cp=False,
-        convert_weights=True,
+        convert_weights=False,
         frozen_stages=-1,
-        init_cfg=None),
+        init_cfg=dict(type='Pretrained', checkpoint=pretrained)
+    ),
     neck=dict(
         type='CBFPN',
         in_channels=[128, 256, 512, 1024]
@@ -34,53 +44,74 @@ model = dict(
         type='MSHTCRoIHead',
         bbox_head=[
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.1, 0.1, 0.2, 0.2]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.05, 0.05, 0.1, 0.1]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0,
                                loss_weight=1.0)),
             dict(
-                type='Shared2FCBBoxHead',
+                type='ConvFCBBoxHead',
+                num_shared_convs=2,
+                num_shared_fcs=2,
+                conv_out_channels=256,
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
                 num_classes=2,
+                cls_predictor_cfg=dict(type='NormedLinear', tempearture=20),
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
                     target_stds=[0.033, 0.033, 0.067, 0.067]),
                 reg_class_agnostic=True,
                 loss_cls=dict(
-                    type='CrossEntropyLoss',
+                    type='SeesawLoss',
                     use_sigmoid=False,
+                    p=0.8,
+                    q=2.0,
+                    num_classes=2,
                     loss_weight=1.0),
                 loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
         ],

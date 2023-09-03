@@ -7,7 +7,7 @@ _base_ = [
 custom_imports=dict(imports=['modules'])
 
 model = dict(
-    type='MaskScoringRCNN',
+    type="CBNetDetector",
     backbone = dict(
         _delete_=True,
         type='CBSwinTransformer',
@@ -24,7 +24,7 @@ model = dict(
         patch_norm=True,
         out_indices=(0, 1, 2, 3),
         with_cp=False,
-        convert_weights=True,
+        convert_weights=False,
         frozen_stages=-1,
         init_cfg=None),
     neck=dict(

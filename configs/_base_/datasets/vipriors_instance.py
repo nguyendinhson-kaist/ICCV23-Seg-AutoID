@@ -23,11 +23,14 @@ metainfo = {
 
 custom_imports=dict(imports=['utils.transforms'])
 
-img_size = (1920, 1440) # w, h
+img_size = (1760, 1280) # w, h
 
 # imagenet mean/std
 img_mean = (123.675, 116.28, 103.53)
 img_std = (58.395, 57.12, 57.375)
+# deepsport mean/std
+# img_mean = (94.831, 82.198, 80.075)
+# img_std = (80.437, 69.446, 67.061)
 
 # if you want to use built-in CopyPaste in mmdet, uncomment below config
 # load_pipeline = [
@@ -91,13 +94,10 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(
         type='SpecialCopyPaste', 
-        crop_dir='data/cropped_objects', 
+        crop_dir='data/train_val_cropped_objects', 
         crop_anno='crop.json',
-        max_num_objects=[10,20]),
-    # dict(type='Resize', scale=(
-    #     1920,
-    #     1440,
-    # ), keep_ratio=True),
+        max_num_objects=[20,40],
+        prob=1.0),
     dict(
         type='RandomChoiceResize', 
         scales=[
@@ -110,10 +110,10 @@ train_pipeline = [
     # photometric transform
     dict(type='PhotoMetricDistortion'),
     # geometric transform
-    dict(type='ShearX', max_mag=5.0, prob=0.2, img_border_value=img_mean),
-    dict(type='ShearY', max_mag=5.0, prob=0.2, img_border_value=img_mean),
-    dict(type='TranslateX', max_mag=0.05, prob=0.2, img_border_value=img_mean),
-    dict(type='TranslateY', max_mag=0.05, prob=0.2, img_border_value=img_mean),
+    dict(type='ShearX', max_mag=10.0, prob=0.4, img_border_value=img_mean),
+    dict(type='ShearY', max_mag=10.0, prob=0.4, img_border_value=img_mean),
+    dict(type='TranslateX', max_mag=0.1, prob=0.4, img_border_value=img_mean),
+    dict(type='TranslateY', max_mag=0.1, prob=0.4, img_border_value=img_mean),
     dict(type='RandomFlip', prob=0.5),
     dict(
         type='RandomCrop',
@@ -121,8 +121,6 @@ train_pipeline = [
         recompute_bbox=True,
         allow_negative_crop=True),
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1e-2, 1e-2)),
-    # dict(type='Pad', size=img_size),
-    # dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs')
 ]
 train_dataloader = dict(
@@ -134,8 +132,8 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='train.json',
-        data_prefix=dict(img='train/'),
+        ann_file='train_val.json',
+        data_prefix=dict(img='train_val/'),
         metainfo = metainfo,
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline,
@@ -144,7 +142,6 @@ train_dataloader = dict(
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=img_size, keep_ratio=True),
-    # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(
         type='PackDetInputs',

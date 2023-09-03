@@ -20,7 +20,7 @@ class PasteObject(object):
         self.image_id = object_info['image_id']
         self.category = category
         self.category_id = category_id
-        self.size = (object_info['width'], object_info['height'])
+
         self.paste_coord = None
 
         # load image
@@ -29,6 +29,8 @@ class PasteObject(object):
         # load binary mask
         self.mask = mask.decode(object_info['segmentation']).astype(np.uint8)
 
+        self.size = (self.mask.shape[1], self.mask.shape[0])
+        
 @TRANSFORMS.register_module()
 class SpecialCopyPaste(BaseTransform):
     """Specialized CopyPaste Augmentation. It will read the cropped objects and their mask annotation from dataset
@@ -50,7 +52,9 @@ class SpecialCopyPaste(BaseTransform):
         max_num_objects: List[int],
         bbox_occluded_thr: int = 10,
         mask_occluded_thr: int = 300,
-    ) -> None:
+        prob: float = 0.5
+        ) -> None:
+        assert 0 <= prob <= 1
         
         self.crop_dir = crop_dir
         self.crop_anno = crop_anno
@@ -60,6 +64,8 @@ class SpecialCopyPaste(BaseTransform):
         self.max_num_objects = max_num_objects
         self.bbox_occluded_thr = bbox_occluded_thr
         self.mask_occluded_thr = mask_occluded_thr
+
+        self.prob = prob
 
         # The minimum contour area to be considered in the basketball court detector. 
         # It should be big to detect just the court and discard the small objects.
@@ -84,6 +90,10 @@ class SpecialCopyPaste(BaseTransform):
         self._load_object_list()
         assert len(self.categories) == len(self.max_num_objects)
         
+
+    def _random_prob(self) -> float:
+        return random.uniform(0, 1)
+
     def _load_object_list(self):
         '''Load categories from crop annotation file then export all info into a dict'''
         crop_anno_path = osp.join(self.crop_dir, self.crop_anno)
@@ -119,6 +129,9 @@ class SpecialCopyPaste(BaseTransform):
             # add to paste list
             self.paste_list = self.paste_list + \
                 [PasteObject(info, cat, cat_id, img_dir) for info in samples]
+            
+        # shuffle the list
+        random.shuffle(self.paste_list)
 
     def _average_close_points(self, points, threshold):
         '''averaging the intersections for defining the pasting area
@@ -361,7 +374,11 @@ class SpecialCopyPaste(BaseTransform):
         
         # Create pasting area
         hull = cv2.convexHull(final_points)
-        for paste_object in self.paste_list:
+
+        i = 0
+        # for paste_object in self.paste_list:
+        while i < len(self.paste_list):
+            paste_object = self.paste_list[i]
             point_inside = False
             while not point_inside:
                 random_x = random.uniform(min_x, max_x)
@@ -370,18 +387,22 @@ class SpecialCopyPaste(BaseTransform):
                 if distance > 0:
                     point_inside = True
             
-            # (random_x, random_y) should be bottom-right if basketball court can be detected
-            # otherwise, it should be top-left
+            # calculate paste coordinate
             paste_w, paste_h = paste_object.size
 
+            # (random_x, random_y) should be bottom-right if basketball court can be detected
+            # otherwise, it should be top-left
             if apply_predefined:
-                paste_x = random_x if random_x+paste_w <= w else w - paste_w
-                paste_y = random_y if random_y+paste_h <= h else h - paste_h
+                paste_x = random_x
+                paste_y = random_y
             else:
-                paste_x = max(random_x - paste_w, 0.0)
-                paste_y = max(random_y - paste_h, 0.0)
-            paste_x = math.floor(paste_x)
-            paste_y = math.floor(paste_y)
+                paste_x = random_x - paste_w
+                paste_y = random_y - paste_h
+
+            # validate paste coordinate
+            paste_x = math.floor(max(min(paste_x, w-paste_w), 0.0))
+            paste_y = math.floor(max(min(paste_y, h-paste_h), 0.0))
+
             paste_object.paste_coord = (paste_x, paste_y)
 
             # update mask to image scale
@@ -389,12 +410,34 @@ class SpecialCopyPaste(BaseTransform):
             expanded_mask[paste_y:paste_y+paste_h, paste_x:paste_x+paste_w] = paste_object.mask
             paste_object.mask = expanded_mask
 
+            # random add human-ball interaction
+            if i < len(self.paste_list) - 1:
+                next_paste_object = self.paste_list[i+1]
+                next_paste_w, next_paste_h = next_paste_object.size
+                if paste_object.category == 'human' \
+                    and next_paste_object.category == 'ball' \
+                    and paste_w >= next_paste_w \
+                    and paste_h >= next_paste_h:
+                    
+                    next_paste_x = math.floor(random.uniform(paste_x, paste_x+paste_w-next_paste_w))
+                    next_paste_y = math.floor(random.uniform(paste_y, paste_y+paste_h-next_paste_h))
+                    next_paste_object.paste_coord = (next_paste_x, next_paste_y)
+
+                    next_expanded_mask = np.zeros(shape=(h, w), dtype=np.uint8)
+                    next_expanded_mask[next_paste_y:next_paste_y+next_paste_h, next_paste_x:next_paste_x+next_paste_w] = next_paste_object.mask
+                    next_paste_object.mask = next_expanded_mask
+
+                    i += 1
+
+            # increase index
+            i += 1
+
     def _update_occluded_masks(self):
         '''update mask of paste objects if occluded'''
         paste_masks = np.array([paste_object.mask for paste_object in self.paste_list])
 
         for i, paste_object in enumerate(self.paste_list):
-            if i == len(self.paste_list):
+            if i == len(self.paste_list) - 1:
                 break
 
             composed_mask = np.where(np.any(paste_masks[i+1:], axis=0), 1, 0)
@@ -443,6 +486,9 @@ class SpecialCopyPaste(BaseTransform):
         return np.full((len(self.paste_list),), False, dtype=bool)
 
     def transform(self, results):
+        if self._random_prob() > self.prob:
+            return results
+          
         self._select_object()
         self._assign_paste_coord(results)
         self._update_occluded_masks()
