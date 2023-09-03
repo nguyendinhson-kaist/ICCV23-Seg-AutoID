@@ -6,7 +6,12 @@ _base_ = [
 
 custom_imports=dict(imports=['modules'])
 
-pretrained = 'pretrain/mask_rcnn_swinb.pth'
+# you can download our pretrain checkpoint here: 
+# https://drive.google.com/file/d/1mR7qeJ430fJwmGJXwOhJaByLOhMD8xKI/view?usp=sharing
+# please notice that this does not violate the rules of the competition
+# we firstly train MaskRCNN with SwinB backbone on the challenge dataset,
+# then use the final checkpoint for CBSwinB backbone to reduce training time
+pretrained = 'pretrain/mask_rcnn_swinb.pth' 
 # norm_cfg = dict(type='SyncBN', requires_grad=True)
 
 model = dict(
