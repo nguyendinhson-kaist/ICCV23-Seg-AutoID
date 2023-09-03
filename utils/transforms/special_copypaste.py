@@ -20,6 +20,7 @@ class PasteObject(object):
         self.image_id = object_info['image_id']
         self.category = category
         self.category_id = category_id
+
         self.paste_coord = None
 
         # load image
@@ -29,7 +30,7 @@ class PasteObject(object):
         self.mask = mask.decode(object_info['segmentation']).astype(np.uint8)
 
         self.size = (self.mask.shape[1], self.mask.shape[0])
-
+        
 @TRANSFORMS.register_module()
 class SpecialCopyPaste(BaseTransform):
     """Specialized CopyPaste Augmentation. It will read the cropped objects and their mask annotation from dataset
@@ -52,9 +53,9 @@ class SpecialCopyPaste(BaseTransform):
         bbox_occluded_thr: int = 10,
         mask_occluded_thr: int = 300,
         prob: float = 0.5
-    ) -> None:
+        ) -> None:
         assert 0 <= prob <= 1
-
+        
         self.crop_dir = crop_dir
         self.crop_anno = crop_anno
         self.mask_info = dict()
@@ -63,6 +64,7 @@ class SpecialCopyPaste(BaseTransform):
         self.max_num_objects = max_num_objects
         self.bbox_occluded_thr = bbox_occluded_thr
         self.mask_occluded_thr = mask_occluded_thr
+
         self.prob = prob
 
         # The minimum contour area to be considered in the basketball court detector. 
@@ -88,9 +90,10 @@ class SpecialCopyPaste(BaseTransform):
         self._load_object_list()
         assert len(self.categories) == len(self.max_num_objects)
         
+
     def _random_prob(self) -> float:
         return random.uniform(0, 1)
-    
+
     def _load_object_list(self):
         '''Load categories from crop annotation file then export all info into a dict'''
         crop_anno_path = osp.join(self.crop_dir, self.crop_anno)
@@ -485,7 +488,7 @@ class SpecialCopyPaste(BaseTransform):
     def transform(self, results):
         if self._random_prob() > self.prob:
             return results
-
+          
         self._select_object()
         self._assign_paste_coord(results)
         self._update_occluded_masks()

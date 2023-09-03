@@ -12,7 +12,6 @@ def parse_args():
 
     parser.add_argument('data_root', type=str, 
         help='data path')
-    
     parser.add_argument('mode', type=str, choices=['train', 'val', 'train_val'],
         help='the mode of dataset: train/val/train_val')
 
