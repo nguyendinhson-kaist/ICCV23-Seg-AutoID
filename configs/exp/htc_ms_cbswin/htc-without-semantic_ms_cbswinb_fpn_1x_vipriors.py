@@ -6,7 +6,7 @@ _base_ = [
 
 custom_imports=dict(imports=['modules'])
 
-pretrained = 'ssl_pretrain/converted_mask_rcnn_swinb_exp_20230804-152312.pth'
+pretrained = 'pretrain/mask_rcnn_swinb.pth'
 # norm_cfg = dict(type='SyncBN', requires_grad=True)
 
 model = dict(
@@ -29,7 +29,6 @@ model = dict(
         with_cp=False,
         convert_weights=False,
         frozen_stages=-1,
-        # init_cfg=None,
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)
     ),
     neck=dict(
@@ -44,7 +43,6 @@ model = dict(
                 num_shared_convs=2,
                 num_shared_fcs=2,
                 conv_out_channels=256,
-                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -69,7 +67,6 @@ model = dict(
                 num_shared_convs=2,
                 num_shared_fcs=2,
                 conv_out_channels=256,
-                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -94,7 +91,6 @@ model = dict(
                 num_shared_convs=2,
                 num_shared_fcs=2,
                 conv_out_channels=256,
-                # type='Shared2FCBBoxHead',
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
@@ -119,7 +115,6 @@ model = dict(
                 type='HTCMaskHead',
                 with_conv_res=False,
                 num_convs=4,
-                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,
@@ -128,7 +123,6 @@ model = dict(
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
-                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,
@@ -137,7 +131,6 @@ model = dict(
             dict(
                 type='HTCMaskHead',
                 num_convs=4,
-                # norm_cfg=norm_cfg,
                 in_channels=256,
                 conv_out_channels=256,
                 num_classes=2,

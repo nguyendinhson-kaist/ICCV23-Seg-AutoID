@@ -98,10 +98,6 @@ train_pipeline = [
         crop_anno='crop.json',
         max_num_objects=[20,40],
         prob=1.0),
-    # dict(type='Resize', scale=(
-    #     1920,
-    #     1440,
-    # ), keep_ratio=True),
     dict(
         type='RandomChoiceResize', 
         scales=[
@@ -125,8 +121,6 @@ train_pipeline = [
         recompute_bbox=True,
         allow_negative_crop=True),
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1e-2, 1e-2)),
-    # dict(type='Pad', size=img_size),
-    # dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs')
 ]
 train_dataloader = dict(
@@ -148,7 +142,6 @@ train_dataloader = dict(
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=img_size, keep_ratio=True),
-    # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(
         type='PackDetInputs',

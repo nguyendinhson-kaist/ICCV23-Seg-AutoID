@@ -107,7 +107,8 @@ def merge_args_to_config(cfg, args):
                         dict(type='Resize', scale_factor=1.0, keep_ratio=True),
                         dict(type='Resize', scale_factor=0.8, keep_ratio=True),
                         dict(type='Resize', scale_factor=1.5, keep_ratio=True),
-                        dict(type='Resize', scale=(1920, 1440), keep_ratio=True)
+                        dict(type='Resize', scale=(1920, 1440), keep_ratio=True),
+                        dict(type='Resize', scale=(1760, 1280), keep_ratio=True)
                     ],
                     [
                         dict(type='RandomFlip', prob=0.),
